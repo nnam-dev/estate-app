@@ -38,3 +38,42 @@ export const signin = async (req, res, next) => {
         return next(error);
     }
 };
+
+export const google = async (req, res, next) => {
+    const { username,email,photo } = req.body;
+  
+    try {
+      const user= await User.findOne({email});
+      if (user) {
+        const token =jwt.sign({id:user._id},process.env.JWT_SECRET)
+        const {password:pass,...userInfo}=user._doc
+
+        res.cookie('access_token',token,{httpOnly:true,expires:new Date(Date.now() + 24*60*60*1000)})
+      .status(200)
+      .json(userInfo)
+
+      }else{
+        const generatedPassword=Math.random().toString(36).slice(-8)
+        const usernamed=username.split(" ").join("").toLowerCase() + Math.random().toString(36).slice(-4);
+       
+        const hashedPassword=bcryptjs.hashSync(generatedPassword,10)
+        const newUser=new User({
+            username:usernamed,
+            email:email,
+            password:hashedPassword,
+            avatar:photo
+
+        })
+        await newUser.save();
+        const token =jwt.sign({id:newUser._id},process.env.JWT_SECRET)
+        const {password:pass,...userInfo}=newUser._doc
+
+        res.cookie('access_token',token,{httpOnly:true,expires:new Date(Date.now() + 24*60*60*1000)})
+      .status(200)
+      .json(userInfo)
+      }
+      
+    } catch (error) {
+        return next(error);
+    }
+};
