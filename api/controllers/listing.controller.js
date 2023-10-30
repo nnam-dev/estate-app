@@ -59,3 +59,23 @@ export const deleteListing = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateListing = async (req, res, next) => {
+    //if(req.user.id !== req.params.id) return next(errorHandler('401','Forbidden'))
+    const listing = await Listing.findById(req.params.id);
+  
+    if (!listing) {
+      return next(errorHandler(404, "Listing not found"));
+    }
+  
+    if (req.user.id !== listing.userRef) {
+      return next(errorHandler(404, "You can only delete your listing"));
+    }
+   
+    try {
+      const updatedListing= await Listing.findByIdAndUpdate(req.params.id,req.body,{new:true});
+      return res.status(200).json(updatedListing);
+    } catch (error) {
+      next(error);
+    }
+  };
