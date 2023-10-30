@@ -1,56 +1,61 @@
 import Listing from "../models/listing.model.js";
-import { errorHandler } from "../utils/error.js"
+import { errorHandler } from "../utils/error.js";
 
+export const createList = async (req, res, next) => {
+  // if(req.user.id !== req.params.id) return next(errorHandler(401,'Forbidden'))
+  if (!req.user.id) return next(errorHandler(401, "Forbidden"));
 
-export const createList=async (req,res,next)=>{
-   // if(req.user.id !== req.params.id) return next(errorHandler(401,'Forbidden'))
-   if(!req.user.id) return next(errorHandler(401,'Forbidden'))
+  try {
+    const listing = await new Listing(req.body);
+    listing.save();
 
-    try{
-       
-        const listing=await new Listing(req.body);
-        listing.save();
-        
-        return res.status(201).json(listing)
+    return res.status(201).json(listing);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    }catch(error){
-        next(error)
-    }
-}
+export const updateList = async (req, res, next) => {
+  if (req.user.id !== req.params.id)
+    return next(errorHandler("401", "Forbidden"));
 
+  try {
+    const updateUser = await User.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          username: req.body.username,
+          email: req.body.email,
+          password: req.body.password,
+          avatar: req.body.avatar,
+        },
+      },
+      { new: true }
+    );
 
-export const updateList=async (req,res,next)=>{
-    if(req.user.id !== req.params.id) return next(errorHandler('401','Forbidden'))
+    const { password, ...others } = updateUser._doc;
+    return res.status(200).json(others);
+  } catch (error) {
+    next(error);
+  }
+};
 
-    try{
-       
-        const updateUser=await User.findByIdAndUpdate(req.params.id,{
-            $set:{
-                username:req.body.username,
-                email:req.body.email,
-                password:req.body.password,
-                avatar:req.body.avatar
-            }
-        },{new:true})
-        
-        const {password,...others}=updateUser._doc
-        return res.status(200).json(others)
+export const deleteListing = async (req, res, next) => {
+  //if(req.user.id !== req.params.id) return next(errorHandler('401','Forbidden'))
+  const listing = await Listing.findById(req.params.id);
 
-    }catch(error){
-        next(error)
-    }
-}
+  if (!listing) {
+    return next(errorHandler(404, "Listing not found"));
+  }
 
-export const deleteUser=async (req,res,next)=>{
-    if(req.user.id !== req.params.id) return next(errorHandler('401','Forbidden'))
+  if (req.user.id !== listing.userRef) {
+    return next(errorHandler(404, "You can only delete your listing"));
+  }
 
-    try{
-        
-        const updateUser=await User.findByIdAndDelete(req.params.id)
-        res.clearCookie('access_token');
-        return res.status(200).json('User deleted successfully');
-
-    }catch(error){
-        next(error)
-    }
-}
+  try {
+     await Listing.findByIdAndDelete(req.params.id);
+    return res.status(200).json("Listing deleted successfully");
+  } catch (error) {
+    next(error);
+  }
+};
