@@ -104,7 +104,7 @@ export const getListings = async (req, res, next) => {
   //if(req.user.id !== req.params.id) return next(errorHandler('401','you can only view your listing'))
 
   try {
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 6;
     const startIndex = parseInt(req.query.startIndex) || 0;
     let offer = req.query.offer;
     if (offer === undefined || offer === "false") {
