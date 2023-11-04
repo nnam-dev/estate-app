@@ -105,7 +105,7 @@ const {currentUser}=useSelector(state=>state.user)
               </p>
               {listing.offer && (
                 <p className='bg-green-900 w-full max-w-[200px] text-white text-center p-1 rounded-md'>
-                  &#8358;{(+listing.regularPrice - +listing.discountPrice).toLocaleString('en-US')} OFF
+                  &#8358;{(+listing.regularPrice - +listing.discountPrice).toLocaleString('en-US')} discount
                 </p>
               )}
             </div>
